@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:sort_visualizer/screens/sort_visualizer.dart';
 
 class MainScreen extends StatefulWidget {
@@ -22,6 +23,13 @@ class _MainScreenState extends State<MainScreen> {
 
   bool enableButton = false;
   final formKey = GlobalKey<FormState>();
+  TextEditingController elementController = TextEditingController();
+  @override
+  void dispose() {
+    elementController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final border = OutlineInputBorder(borderRadius: BorderRadius.circular(10));
@@ -58,30 +66,43 @@ class _MainScreenState extends State<MainScreen> {
                 style: Theme.of(context).textTheme.bodyLarge,
               ),
               const SizedBox(height: 10),
-              TextFormField(
-                validator: (value) {
-                  if (value!.isEmpty) {
-                    return "Enter a value";
-                  }
-                  return null;
-                },
-                decoration: InputDecoration(
-                    constraints:
-                        const BoxConstraints(maxWidth: 300, maxHeight: 50),
-                    border: border,
-                    hintText: "Enter you number",
-                    enabledBorder: border,
-                    focusedBorder: border),
+              SizedBox(
+                height: 70,
+                child: TextFormField(
+                  controller: elementController,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: <TextInputFormatter>[
+                    FilteringTextInputFormatter.digitsOnly
+                  ],
+                  validator: (value) {
+                    if (value!.isEmpty) {
+                      return "Enter a value";
+                    }
+                    if (int.parse(value) > 1000) {
+                      return "Elements should be less than 1000";
+                    }
+                    return null;
+                  },
+                  decoration: InputDecoration(
+                      constraints:
+                          const BoxConstraints(maxWidth: 300, maxHeight: 50),
+                      border: border,
+                      hintText: "Enter you number",
+                      enabledBorder: border,
+                      focusedBorder: border),
+                ),
               ),
               const SizedBox(height: 10),
               ElevatedButton(
                   onPressed: enableButton
                       ? () {
+                          List<int> list = generateRandomList(
+                              int.parse(elementController.text));
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => SortVisualizer(
-                                  unsortedList: generateRandomList(50)),
+                              builder: (context) =>
+                                  SortVisualizer(unsortedList: list),
                             ),
                           );
                         }

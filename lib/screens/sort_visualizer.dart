@@ -40,33 +40,34 @@ class _SortVisualizerState extends State<SortVisualizer> {
     setState(() {});
   }
 
-  Future<bool> sort(List<int> intList) async {
-    print("Sorting");
+  Future<bool> sort(List<int> currentList) async {
     if (selectedSortingMethod == 0) {
-      selectionSort(intList);
+      selectionSort(currentList);
     }
     if (selectedSortingMethod == 1) {
-      insertionSort(intList);
+      insertionSort(currentList);
     }
     if (selectedSortingMethod == 2) {
-      bubbleSort(intList);
+      bubbleSort(currentList);
     }
     if (selectedSortingMethod == 3) {
-      quickSort(intList, 0, intList.length - 1);
+      quickSort(currentList, 0, currentList.length - 1);
     }
     if (selectedSortingMethod == 4) {
-      await mergeSort(intList, 0, intList.length - 1);
+      await mergeSort(currentList, 0, currentList.length - 1);
     }
     return true;
   }
 
-  Future<bool> merge(var a, var x1, var y1, var x2, var y2) async {
-    int i = 0, j = 0;
+  Future<bool> merge(List<int> a, int x1, int y1, int x2, int y2) async {
+    int i = 0;
     int start = x1, end = y2;
     List<int> c = List<int>.filled(0, 0, growable: true);
-    List<int> indexCont = List<int>.filled(0, 0, growable: true);
+
     while (true) {
       if (cancelled && mounted) {
+        // If cancelled flag is true and the component is still mounted,
+        // reset bar colors and cancelled flag
         setState(() => {
               barColor1 = -1,
               barColor2 = -1,
@@ -74,7 +75,9 @@ class _SortVisualizerState extends State<SortVisualizer> {
             });
         return true;
       }
+
       if (x1 > y1) {
+        // Add remaining elements from the second half to the merged list
         for (i = x2; i <= y2; i++) {
           c.add(a[i]);
           if (mounted) {
@@ -86,7 +89,9 @@ class _SortVisualizerState extends State<SortVisualizer> {
         }
         break;
       }
+
       if (x2 > y2) {
+        // Add remaining elements from the first half to the merged list
         for (i = x1; i <= y1; i++) {
           c.add(a[i]);
           if (mounted) {
@@ -98,6 +103,8 @@ class _SortVisualizerState extends State<SortVisualizer> {
         }
         break;
       }
+
+      // Merge elements comparing values at x1 and x2 indices
       if (a[x1] <= a[x2]) {
         c.add(a[x1]);
         if (mounted) {
@@ -118,80 +125,96 @@ class _SortVisualizerState extends State<SortVisualizer> {
         x2++;
       }
     }
+
+    // Update the original list with the sorted values
     for (i = start; i <= end; i++) {
       await changeVal(a, i, c, start);
     }
+
     return true;
   }
 
-  Future<bool> changeVal(var a, var i, var c, var start) async {
+  Future<bool> changeVal(List<int> a, int i, List<int> c, int start) async {
     var v = 0;
+
+    // Map different values of _value to corresponding delays
     if (_value == 100) {
       v = 0;
-    }
-    if (_value == 75) {
+    } else if (_value == 75) {
       v = 100;
-    }
-    if (_value == 50) {
+    } else if (_value == 50) {
       v = 350;
-    }
-    if (_value == 25) {
+    } else if (_value == 25) {
       v = 650;
-    }
-    if (_value == 0) {
+    } else if (_value == 0) {
       v = 1000;
     }
+
     await Future.delayed(Duration(milliseconds: v));
+
+    // Update the original list with the sorted values
     if (mounted) {
-      setState(
-        () => a[i] = c[i - start],
-      );
+      setState(() => a[i] = c[i - start]);
     }
+
     return true;
   }
 
-  Future<bool> mergeSort(var a, var x, var y) async {
+  Future<bool> mergeSort(List<int> a, int x, int y) async {
     if (x >= y) {
+      // Base case: If the list size is 1 or empty, it is already sorted
       return true;
     }
-    int mid = ((x + y) / 2).toInt();
+
+    int mid = ((x + y) ~/ 2);
+
+    // Recursively sort the first and second halves
     await mergeSort(a, x, mid);
     await mergeSort(a, mid + 1, y);
+
+    // Merge the sorted halves
     await merge(a, x, mid, mid + 1, y);
+
     if (mounted) {
+      // Reset bar colors after sorting completion
       setState(() => {
             barColor1 = -1,
             barColor2 = -1,
           });
     }
+
     return true;
   }
 
+// Similar optimizations and comments can be applied to other sorting functions...
+// (quickSort, bubbleSort, insertionSort, selectionSort)
   Future<bool> quickSort(
-      listtobesort, int leftelement, int rightelement) async {
-    int i = leftelement;
-    int j = rightelement;
-    int pivotelement = listtobesort[(leftelement + rightelement) ~/ 2];
+      List<int> listToBeSorted, int leftElement, int rightElement) async {
+    int i = leftElement;
+    int j = rightElement;
+    int pivotElement = listToBeSorted[(leftElement + rightElement) ~/ 2];
 
     while (i <= j) {
       var v = 0;
+
+      // Map different values of _value to corresponding delays
       if (_value == 100) {
         v = 0;
-      }
-      if (_value == 75) {
+      } else if (_value == 75) {
         v = 100;
-      }
-      if (_value == 50) {
+      } else if (_value == 50) {
         v = 350;
-      }
-      if (_value == 25) {
+      } else if (_value == 25) {
         v = 650;
-      }
-      if (_value == 0) {
+      } else if (_value == 0) {
         v = 1000;
       }
+
       await Future.delayed(Duration(milliseconds: v));
+
       if (cancelled && mounted) {
+        // If cancelled flag is true and the component is still mounted,
+        // reset bar colors and cancelled flag
         setState(() => {
               barColor1 = -1,
               barColor2 = -1,
@@ -199,65 +222,76 @@ class _SortVisualizerState extends State<SortVisualizer> {
             });
         return true;
       }
-      while (listtobesort[i] < pivotelement) {
+
+      // Find elements to swap in the left and right halves
+      while (listToBeSorted[i] < pivotElement) {
         i++;
       }
 
-      while (listtobesort[j] > pivotelement) {
+      while (listToBeSorted[j] > pivotElement) {
         j--;
       }
-      int objtemp;
+
+      // Swap elements if necessary
       if (i <= j) {
         if (mounted) {
-          setState(() => {
-                objtemp = listtobesort[i],
-                listtobesort[i] = listtobesort[j],
-                listtobesort[j] = objtemp,
-                barColor1 = i,
-                barColor2 = j,
-              });
+          setState(() {
+            int temp = listToBeSorted[i];
+            listToBeSorted[i] = listToBeSorted[j];
+            listToBeSorted[j] = temp;
+            barColor1 = i;
+            barColor2 = j;
+          });
         }
         i++;
         j--;
       }
     }
 
-    if (leftelement < j) {
-      quickSort(listtobesort, leftelement, j);
+    // Recursively sort the subarrays
+    if (leftElement < j) {
+      await quickSort(listToBeSorted, leftElement, j);
     }
-    if (i < rightelement) {
-      quickSort(listtobesort, i, rightelement);
+    if (i < rightElement) {
+      await quickSort(listToBeSorted, i, rightElement);
     }
+
     if (mounted) {
+      // Reset bar colors after sorting completion
       setState(() => {
             barColor1 = -1,
             barColor2 = -1,
           });
     }
+
     return true;
   }
 
-  Future<bool> bubbleSort(var L) async {
-    var n = L.length;
+// Continue with the optimization and comments for bubbleSort, insertionSort, selectionSort...
+// (Code for these functions has been partially provided in the previous response)
+  Future<bool> bubbleSort(List<int> list) async {
+    var n = list.length;
     for (var i = 0; i < n; i++) {
       var v = 0;
+
+      // Map different values of _value to corresponding delays
       if (_value == 100) {
         v = 0;
-      }
-      if (_value == 75) {
+      } else if (_value == 75) {
         v = 100;
-      }
-      if (_value == 50) {
+      } else if (_value == 50) {
         v = 350;
-      }
-      if (_value == 25) {
+      } else if (_value == 25) {
         v = 650;
-      }
-      if (_value == 0) {
+      } else if (_value == 0) {
         v = 1000;
       }
+
       await Future.delayed(Duration(milliseconds: v));
+
       if (cancelled && mounted) {
+        // If cancelled flag is true and the component is still mounted,
+        // reset bar colors and cancelled flag
         setState(() => {
               barColor1 = -1,
               barColor2 = -1,
@@ -265,50 +299,57 @@ class _SortVisualizerState extends State<SortVisualizer> {
             });
         return true;
       }
-      var temp;
+
+      int temp;
       for (var j = 0; j < n - i - 1; j++) {
-        if (L[j] > L[j + 1]) {
+        // Swap elements if they are in the wrong order
+        if (list[j] > list[j + 1]) {
           if (mounted) {
-            setState(() => {
-                  temp = L[j],
-                  L[j] = L[j + 1],
-                  L[j + 1] = temp,
-                  barColor1 = i,
-                  barColor2 = j,
-                });
+            setState(() {
+              temp = list[j];
+              list[j] = list[j + 1];
+              list[j + 1] = temp;
+              barColor1 = i;
+              barColor2 = j;
+            });
           }
         }
       }
     }
+
     if (mounted) {
+      // Reset bar colors after sorting completion
       setState(() => {
             barColor1 = -1,
             barColor2 = -1,
           });
     }
+
     return true;
   }
 
   Future<bool> insertionSort(List<int> list) async {
     for (int j = 1; j < list.length; j++) {
       var v = 0;
+
+      // Map different values of _value to corresponding delays
       if (_value == 100) {
         v = 0;
-      }
-      if (_value == 75) {
+      } else if (_value == 75) {
         v = 100;
-      }
-      if (_value == 50) {
+      } else if (_value == 50) {
         v = 350;
-      }
-      if (_value == 25) {
+      } else if (_value == 25) {
         v = 650;
-      }
-      if (_value == 0) {
+      } else if (_value == 0) {
         v = 1000;
       }
+
       await Future.delayed(Duration(milliseconds: v));
+
       if (cancelled && mounted) {
+        // If cancelled flag is true and the component is still mounted,
+        // reset bar colors and cancelled flag
         setState(() => {
               barColor1 = -1,
               barColor2 = -1,
@@ -316,58 +357,61 @@ class _SortVisualizerState extends State<SortVisualizer> {
             });
         return true;
       }
-      int key = list[j];
 
+      int key = list[j];
       int i = j - 1;
 
+      // Move elements that are greater than key to one position ahead of their current position
       while (i >= 0 && list[i] > key) {
         if (mounted) {
-          setState(() => {
-                list[i + 1] = list[i],
-                i = i - 1,
-                list[i + 1] = key,
-                barColor1 = j,
-                barColor2 = i,
-              });
+          setState(() {
+            list[i + 1] = list[i];
+            i = i - 1;
+            list[i + 1] = key;
+            barColor1 = j;
+            barColor2 = i;
+          });
         }
       }
     }
+
     if (mounted) {
+      // Reset bar colors after sorting completion
       setState(() => {
             barColor1 = -1,
             barColor2 = -1,
           });
     }
+
     return true;
   }
 
-  Future<bool> selectionSort(var L) async {
-    var n = L.length;
-    var temp, lock = 0, i = 0, j = 0;
-    var index_min = 0;
+  Future<bool> selectionSort(List<int> list) async {
+    var n = list.length;
+    int temp, i = 0, j = 0;
+    var indexMin = 0;
+
     for (i = 0; i < n - 1; i++) {
       var v = 0;
+
+      // Map different values of _value to corresponding delays
       if (_value == 100) {
         v = 0;
-      }
-      if (_value == 75) {
+      } else if (_value == 75) {
         v = 100;
-      }
-      if (_value == 50) {
+      } else if (_value == 50) {
         v = 350;
-      }
-      if (_value == 25) {
+      } else if (_value == 25) {
         v = 650;
-      }
-      if (_value == 0) {
+      } else if (_value == 0) {
         v = 1000;
       }
-      // var v = -1 *
-      //     1 *
-      //     (_value - 50.0)
-      //         .toInt(); // '_value' goes from 100 to 0 so made it go from 0 to 100 by making its value decreased by 100 and negating the result {40 is  multiplied so that v can varies from 0 to 4000 for milliseconds in multiple of 40 milliseconds}
+
       await Future.delayed(Duration(milliseconds: v));
+
       if (cancelled && mounted) {
+        // If cancelled flag is true and the component is still mounted,
+        // reset bar colors and cancelled flag
         setState(() => {
               barColor1 = -1,
               barColor2 = -1,
@@ -375,33 +419,38 @@ class _SortVisualizerState extends State<SortVisualizer> {
             });
         return true;
       }
-      index_min = i;
+
+      indexMin = i;
+
+      // Find the index of the minimum element in the unsorted part of the array
       for (j = i + 1; j < n; j++) {
-        if (L[j] < L[index_min]) {
-          index_min = j;
+        if (list[j] < list[indexMin]) {
+          indexMin = j;
         }
       }
-      if (index_min != i) {
+
+      // Swap the found minimum element with the first element
+      if (indexMin != i) {
         if (mounted) {
-          // While sorting process is going on, back button is clicked then it stops sorting else gives error
-          setState(() => {
-                temp = L[i],
-                L[i] = L[index_min],
-                L[index_min] = temp,
-                barColor1 = i,
-                barColor2 = index_min,
-              });
+          setState(() {
+            temp = list[i];
+            list[i] = list[indexMin];
+            list[indexMin] = temp;
+            barColor1 = i;
+            barColor2 = indexMin;
+          });
         }
       }
     }
+
     if (mounted) {
+      // Reset bar colors after sorting completion
       setState(() => {
             barColor1 = -1,
             barColor2 = -1,
           });
     }
-    // print("hi");
-    // });
+
     return true;
   }
 
@@ -435,22 +484,17 @@ class _SortVisualizerState extends State<SortVisualizer> {
   Widget rectangleCreator(double val, var arr, var i) {
     return Container(
       alignment: Alignment.center,
-      child: Column(
-        children: [
-          Container(
-            color:
-                i == barColor1 || i == barColor2 ? Colors.yellow : Colors.red,
-            height: val,
-            width: MediaQuery.of(context).size.width <= 240
+      child: Container(
+        color: i == barColor1 || i == barColor2 ? Colors.yellow : Colors.red,
+        height: val,
+        width: MediaQuery.of(context).size.width <= 240
+            ? (240 / 2) / arr.length
+            : (MediaQuery.of(context).size.width / 2) / arr.length,
+        margin: EdgeInsets.only(
+            right: MediaQuery.of(context).size.width <= 240
                 ? (240 / 2) / arr.length
-                : (MediaQuery.of(context).size.width / 2) / arr.length,
-            margin: EdgeInsets.only(
-                right: MediaQuery.of(context).size.width <= 240
-                    ? (240 / 2) / arr.length
-                    : (MediaQuery.of(context).size.width / 2) / arr.length),
-            alignment: Alignment.centerRight,
-          ),
-        ],
+                : (MediaQuery.of(context).size.width / 2) / arr.length),
+        alignment: Alignment.centerRight,
       ),
     );
   }
@@ -563,55 +607,84 @@ class _SortVisualizerState extends State<SortVisualizer> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                ElevatedButton(
-                    onPressed: () {
-                      if (sortTap == 0) {
-                        cancelled = false;
-
-                        sort(widget.unsortedList);
-                      }
-                      sortTap++;
-                    },
-                    child: Text("Sort",
-                        style: Theme.of(context)
-                            .textTheme
-                            .bodyLarge!
-                            .copyWith(fontWeight: FontWeight.bold))),
-                ElevatedButton(
-                    onPressed: () {
-                      barColor1 = -1;
-                      barColor2 = -1;
-                      for (int i = 0; i < widget.unsortedList.length; i++) {
-                        widget.unsortedList[i] = initialList[i];
-                      }
-                      setState(() {});
-                    },
-                    child: Text("Reset",
-                        style: Theme.of(context)
-                            .textTheme
-                            .bodyLarge!
-                            .copyWith(fontWeight: FontWeight.bold)))
+                SizedBox(
+                  height: 50,
+                  child: ElevatedButton(
+                      onPressed: () {
+                        if (sortTap == 0) {
+                          cancelled = false;
+                          sort(widget.unsortedList);
+                        }
+                        sortTap++;
+                      },
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.sort,
+                            color: Colors.black,
+                          ),
+                          const SizedBox(width: 10),
+                          Text("Sort",
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyLarge!
+                                  .copyWith(fontWeight: FontWeight.bold)),
+                        ],
+                      )),
+                ),
+                SizedBox(
+                  height: 50,
+                  child: ElevatedButton(
+                      onPressed: () {
+                        barColor1 = -1;
+                        barColor2 = -1;
+                        widget.unsortedList.addAll(initialList);
+                        setState(() {});
+                      },
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.restart_alt,
+                            color: Colors.black,
+                          ),
+                          const SizedBox(width: 10),
+                          Text("Reset",
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyLarge!
+                                  .copyWith(fontWeight: FontWeight.bold)),
+                        ],
+                      )),
+                )
               ],
             ),
+            const SizedBox(height: 15),
           ],
         ),
       ),
       body: Column(
         children: [
           Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Text("Current sorting method : "),
-              Expanded(
+              Text(
+                "Current sorting method : ",
+                style: Theme.of(context).textTheme.bodyLarge,
+              ),
+              SizedBox(
+                width: 300,
                 child: DropdownButtonHideUnderline(
                     child: DropdownButtonFormField<String>(
                   value: currentSort,
                   onChanged: (value) {
                     setState(() {
                       currentSort = value!;
+                      barColor1 = -1;
+                      barColor2 = -1;
+                      sortTap = 0;
                       selectedSortingMethod = getIndex(value);
                       widget.unsortedList.clear();
                       widget.unsortedList.addAll(initialList);
-                      sort(widget.unsortedList);
                     });
                   },
                   items: sortingMethods
@@ -622,6 +695,7 @@ class _SortVisualizerState extends State<SortVisualizer> {
               )
             ],
           ),
+          SizedBox(height: 40),
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
